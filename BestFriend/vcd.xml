@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VoiceCommands xmlns="http://schemas.microsoft.com/voicecommands/1.2">
+  <CommandSet xml:lang="en-us" Name="CommandSet_en-us">
+    <AppName> Best Friend </AppName>
+    <Example> I want to talk Best Friend </Example>
+
+    <Command Name="startChat">
+      <Example> Best Friend, I want to talk </Example>
+      <ListenFor RequireAppName="BeforeOrAfterPhrase"> I want to talk </ListenFor>
+      <ListenFor RequireAppName="BeforeOrAfterPhrase"> Can we talk? </ListenFor>
+      <Feedback> Let's talk Best Friend </Feedback>
+      <Navigate/>
+    </Command>
+
+    <!--<Command Name="sendMessage">
+      <Example>Let's chat</Example>
+      <ListenFor RequireAppName="BeforeOrAfterPhrase" > Can I ask, {message}</ListenFor>
+      <ListenFor RequireAppName="BeforeOrAfterPhrase" > Let me tell you, {message}</ListenFor>
+      <ListenFor RequireAppName="BeforeOrAfterPhrase" > Did you know that {message}</ListenFor>
+      <Feedback> OK </Feedback>
+      <Navigate/>
+    </Command>-->
+
+
+    <Command Name="where">
+      <Example> Where are we on the Build Tour </Example>
+      <ListenFor RequireAppName="BeforeOrAfterPhrase"> Where are we </ListenFor>
+      <ListenFor RequireAppName="ExplicitlySpecified"> Where are we {builtin:AppName}</ListenFor>
+      <VoiceCommandService Target="VoiceServiceEndpoint"/>
+    </Command>
+
+
+    <Command Name="sendMessage">
+      <Example>Let's chat</Example>
+      <ListenFor RequireAppName="BeforeOrAfterPhrase" >Can I ask, {message}</ListenFor>
+      <ListenFor RequireAppName="BeforeOrAfterPhrase" >Let me tell you, {message}</ListenFor>
+      <ListenFor RequireAppName="BeforeOrAfterPhrase" >Did you know that {message}</ListenFor>
+      <VoiceCommandService Target="VoiceServiceEndpoint" />
+    </Command>
+
+   
+
+    <PhraseTopic Label="message" Scenario="Natural Language" />
+  </CommandSet>
+
+</VoiceCommands>
