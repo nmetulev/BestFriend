@@ -69,44 +69,6 @@ namespace BestFriend
             }
         }
 
-        private void Messages_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            ListView.ScrollIntoView(messages.Last(), ScrollIntoViewAlignment.Leading);
-        }
-
-        private void Media_MediaEnded(object sender, RoutedEventArgs e)
-        {
-            manualResetEvent.Set();
-        }
-
-        private async Task SpeakAsync(string toSpeak)
-        {
-            text.Text = "Speaking...";
-            SpeechSynthesizer speechSyntesizer = new SpeechSynthesizer();
-            SpeechSynthesisStream syntStream = await speechSyntesizer.SynthesizeTextToStreamAsync(toSpeak);
-            Media.SetSource(syntStream, syntStream.ContentType);
-
-            Task t = Task.Run(() =>
-            {
-                manualResetEvent.Reset();
-                manualResetEvent.WaitOne();
-            });
-            
-            await t;
-            text.Text = "";
-        }
-
-        private void TextBox_KeyDown(object sender, KeyRoutedEventArgs e)
-        {
-            TextBox box = (TextBox)sender;
-            if (e.Key == Windows.System.VirtualKey.Enter && !string.IsNullOrWhiteSpace(box.Text))
-            {
-                SendMessage(box.Text);
-                box.Text = "";
-
-            }
-        }
-
         private async void StartListenMode()
         {
             
@@ -166,6 +128,23 @@ namespace BestFriend
 
         }
 
+        private async Task SpeakAsync(string toSpeak)
+        {
+            text.Text = "Speaking...";
+            SpeechSynthesizer speechSyntesizer = new SpeechSynthesizer();
+            SpeechSynthesisStream syntStream = await speechSyntesizer.SynthesizeTextToStreamAsync(toSpeak);
+            Media.SetSource(syntStream, syntStream.ContentType);
+
+            Task t = Task.Run(() =>
+            {
+                manualResetEvent.Reset();
+                manualResetEvent.WaitOne();
+            });
+
+            await t;
+            text.Text = "";
+        }
+
         private async Task InitSpeech()
         {
             if (speechRecognizer == null)
@@ -173,7 +152,6 @@ namespace BestFriend
                 try
                 {
                     speechRecognizer = new SpeechRecognizer();
-                    speechRecognizer.StateChanged += SpeechRecognizer_StateChanged;
 
                     SpeechRecognitionCompilationResult compilationResult = await speechRecognizer.CompileConstraintsAsync();
 
@@ -205,7 +183,6 @@ namespace BestFriend
                     {
                         throw new Exception();
                     }
-                    speechRecognizerContinuous.ContinuousRecognitionSession.Completed += ContinuousRecognitionSession_Completed;
                     speechRecognizerContinuous.ContinuousRecognitionSession.ResultGenerated += ContinuousRecognitionSession_ResultGenerated;
                 }
 
@@ -232,10 +209,6 @@ namespace BestFriend
             }
         }
 
-        private void ContinuousRecognitionSession_Completed(SpeechContinuousRecognitionSession sender, SpeechContinuousRecognitionCompletedEventArgs args)
-        {
-        }
-
         private async Task<string> SendMessage(string message, bool speak = false)
         {
             Debug.WriteLine("sending: " + message);
@@ -253,16 +226,6 @@ namespace BestFriend
             }
 
             return response;
-        }
-
-        private void SpeechRecognizer_StateChanged(SpeechRecognizer sender, SpeechRecognizerStateChangedEventArgs args)
-        {
-            
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            SetListening(!listening);
         }
 
         private async Task SetListening(bool toListen)
@@ -288,6 +251,31 @@ namespace BestFriend
 
                 if (speechRecognizerContinuous != null)
                     await speechRecognizerContinuous.ContinuousRecognitionSession.StartAsync();
+            }
+        }
+
+        private void Messages_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            ListView.ScrollIntoView(messages.Last(), ScrollIntoViewAlignment.Leading);
+        }
+
+        private void Media_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            manualResetEvent.Set();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            SetListening(!listening);
+        }
+        private void TextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            TextBox box = (TextBox)sender;
+            if (e.Key == Windows.System.VirtualKey.Enter && !string.IsNullOrWhiteSpace(box.Text))
+            {
+                SendMessage(box.Text);
+                box.Text = "";
+
             }
         }
     }
