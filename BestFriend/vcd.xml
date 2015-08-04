@@ -12,35 +12,36 @@
       <Navigate/>
     </Command>
 
-    <!--<Command Name="sendMessage">
+    <Command Name="sendMessage">
       <Example>Let's chat</Example>
       <ListenFor RequireAppName="BeforeOrAfterPhrase" > Can I ask, {message}</ListenFor>
-      <ListenFor RequireAppName="BeforeOrAfterPhrase" > Let me tell you, {message}</ListenFor>
-      <ListenFor RequireAppName="BeforeOrAfterPhrase" > Did you know that {message}</ListenFor>
       <Feedback> OK </Feedback>
       <Navigate/>
-    </Command>-->
+    </Command>
 
 
     <Command Name="where">
       <Example> Where are we on the Build Tour </Example>
-      <ListenFor RequireAppName="BeforeOrAfterPhrase"> Where are we </ListenFor>
-      <ListenFor RequireAppName="ExplicitlySpecified"> Where are we {builtin:AppName}</ListenFor>
+      <ListenFor RequireAppName="ExplicitlySpecified"> I want to go to {city} {builtin:AppName}</ListenFor>
       <VoiceCommandService Target="VoiceServiceEndpoint"/>
     </Command>
 
 
-    <Command Name="sendMessage">
-      <Example>Let's chat</Example>
-      <ListenFor RequireAppName="BeforeOrAfterPhrase" >Can I ask, {message}</ListenFor>
+    <Command Name="sendMessageInCanvas">
+      <Example>Best Friend, Let me tell you, you are nice!</Example>
       <ListenFor RequireAppName="BeforeOrAfterPhrase" >Let me tell you, {message}</ListenFor>
       <ListenFor RequireAppName="BeforeOrAfterPhrase" >Did you know that {message}</ListenFor>
       <VoiceCommandService Target="VoiceServiceEndpoint" />
     </Command>
 
-   
+    <PhraseList Label="city" Disambiguate="true">
+      <Item>London</Item>
+      <Item>Moscow</Item>
+      <Item>New York</Item>
+    </PhraseList>
 
     <PhraseTopic Label="message" Scenario="Natural Language" />
+    
   </CommandSet>
 
 </VoiceCommands>

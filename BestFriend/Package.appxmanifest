@@ -40,7 +40,7 @@
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
       <Extensions>
-        <uap:Extension Category="windows.appService" EntryPoint="CortanaService.Service">
+        <uap:Extension Category="windows.appService" EntryPoint="BestFriendService.Service">
           <uap:AppService Name="VoiceServiceEndpoint" />
         </uap:Extension>
       </Extensions>

@@ -11,10 +11,19 @@ using Windows.Foundation;
 
 namespace BestFriendService
 {
+    // very simple implementation for the Personality Forge API
+    // www.personalityforge.com
     public sealed class Bot
     {
+        // You will need to create your own API key and enable simple API
         private string key = "Y5YF7tlYibRW0OsK";
-        private string externalId;
+        //private string key = "<INSERT YOUR API KEY HERE>";
+
+        // You will need to either use a bot that  has been enabled for the API
+        // or create your own bot. I've been using the example bot from the API
+        // but be warned, it's very much rated R. The id is 6
+        //private string botId = "<INSERT YOUR BOT NUMBER HERE>";
+        private string botId = "6";
         
         public IAsyncOperation<string> SendMessageAndGetResponseFromBot(string message)
         {
@@ -26,12 +35,11 @@ namespace BestFriendService
                 {
                     HttpClient client = new HttpClient();
                     string uri = "http://www.personalityforge.com/api/chat/?apiKey=" + key +
-                                 "&chatBotID=6" +
+                                 "&chatBotID=" + botId +
                                  "&message=" + message +
-                                 "&externalID=nikolachatmode";
+                                 "&externalID=demo";
                     string response = await client.GetStringAsync(new Uri(uri));
-                    //string response = "Checking origin: '*' (regex: '[a-z0-9]+')<br>Matched!<br>{\"success\":1,\"errorMessage\":\"\",\"message\":{\"chatBotName\":\"Desti\",\"chatBotID\":\"6\",\"message\":\"You're repeating yourself.\",\"emotion\":\"normal\"}}";
-
+                    
                     Match match = Regex.Match(response, "{\"success\".*}");
                     string json = match.ToString();
 

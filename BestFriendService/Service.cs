@@ -42,28 +42,39 @@ namespace BestFriendService
                 switch (voiceCommand.CommandName)
                 {
                     case "where":
-                    
+
+                        var city = voiceCommand.Properties["city"][0];
+
+                        var imageFile = await GenerateWideIconWithCity(city);
+                        var localFolder = ApplicationData.Current.LocalFolder;
+                        StorageFile cityIcon = await localFolder.GetFileAsync(imageFile);
+
+                        var contentTiles = new List<VoiceCommandContentTile>();
+                        var tile1 = new VoiceCommandContentTile();
+                        tile1.ContentTileType = VoiceCommandContentTileType.TitleWith280x140IconAndText;
+                        tile1.AppLaunchArgument = city;
+                        tile1.Image = cityIcon;
+                        contentTiles.Add(tile1);
+
                         userMessage = new VoiceCommandUserMessage()
                         {
-                            DisplayMessage = "Why don't you go outside, take a look, and find out for yourself!",
-                            SpokenMessage = "Why don't you go outside, take a look, and find out for yourself!"
+                            DisplayMessage = "Here you go Best Friend, it's " + city,
+                            SpokenMessage = "Here you go Best Friend, it's " + city
                         };
-                        
-                        response = VoiceCommandResponse.CreateResponse(userMessage);
+
+                        response = VoiceCommandResponse.CreateResponse(userMessage, contentTiles);
                         await voiceServiceConnection.ReportSuccessAsync(response);
 
                         break;
 
                     
-                    case "sendMessage":
+                    case "sendMessageInCanvas":
                         var message = voiceCommand.Properties["message"][0];
                         var bot = new Bot();
                         string firstResponse = await bot.SendMessageAndGetResponseFromBot(message);
 
                         var responseMessage = new VoiceCommandUserMessage();
-                        var responseMessage2 = new VoiceCommandUserMessage();
-                        responseMessage.DisplayMessage = responseMessage.SpokenMessage = firstResponse;
-                        responseMessage2.DisplayMessage = responseMessage2.SpokenMessage = "did you not hear me?";
+                        responseMessage.DisplayMessage = responseMessage.SpokenMessage = "Your Best Friend says \"" + firstResponse + "\"";
                         
                         response = VoiceCommandResponse.CreateResponse(responseMessage);
                         await voiceServiceConnection.ReportSuccessAsync(response);
@@ -74,7 +85,7 @@ namespace BestFriendService
             }
             catch (Exception ex)
             {
-
+                Debug.WriteLine(ex.Message);
             }
             finally
             {
@@ -103,11 +114,49 @@ namespace BestFriendService
             }
         }
 
-        private bool CurrentCityMatches(string city)
+        private async Task<String> GenerateWideIconWithCity(string city)
         {
-            return false;
+            string filename = city + ".png";
+
+            try
+            {
+                var pkgFolder = Windows.ApplicationModel.Package.Current.InstalledLocation;
+                var assetsFolder = await pkgFolder.GetFolderAsync("Assets");
+                var xamlFile = await assetsFolder.GetFileAsync("cityTile.xml");
+                var xamlContent = await FileIO.ReadTextAsync(xamlFile);
+                Windows.UI.Xaml.FrameworkElement drawRoot = (FrameworkElement)XamlReader.Load(xamlContent);
+
+                Image image = (Image)drawRoot.FindName("Image");
+                TextBlock name = (TextBlock)drawRoot.FindName("Name");
+
+                image.Source = new BitmapImage(new Uri("ms-appx:///Assets/city/" + city.ToLower() + ".jpg"));
+                name.Text = city;
+
+
+                RenderTargetBitmap rtb = new RenderTargetBitmap();
+                await rtb.RenderAsync(drawRoot, 280, 140);
+                var buffer = await rtb.GetPixelsAsync();
+                byte[] outputArray = buffer.ToArray();
+
+                var localFolder = ApplicationData.Current.LocalFolder;
+                var rtbData = await localFolder.CreateFileAsync(filename, CreationCollisionOption.ReplaceExisting);
+                using (var rtbStream = await rtbData.OpenAsync(FileAccessMode.ReadWrite))
+                {
+                    var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, rtbStream);
+                    encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, (uint)rtb.PixelWidth, (uint)rtb.PixelHeight, 96, 96, outputArray);
+                    await encoder.FlushAsync();
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                var s = ex.Message;
+                filename = null;
+            }
+
+            return filename;
         }
-        
     }
 
 }

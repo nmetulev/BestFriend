@@ -111,8 +111,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Bot.cs" />
-    <Compile Include="City.cs" />
-    <Compile Include="Data.cs" />
     <Compile Include="Service.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
