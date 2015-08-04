@@ -7,36 +7,33 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <!--<Border Height="140" Width="280">
-        <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-            <Grid >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="100"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.Background>
-                    <ImageBrush Stretch="UniformToFill" x:Name="ImageBackground" Opacity="0.2" ImageSource="Assets/city/london.jpg"></ImageBrush>
-                </Grid.Background>
-                <Image x:Name="Image" Stretch="UniformToFill" Source="Assets/city/london.jpg"></Image>
-                <TextBlock x:Name="Name" Grid.Column="1" FontFamily="Segoe Script" FontSize="32" Margin="12,12,0,0">London</TextBlock>
-            </Grid>
-        </Grid>
-    </Border>-->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="50"></RowDefinition>
         </Grid.RowDefinitions>
-        <ListView x:Name="ListView">
+        <ListView x:Name="ListView" VerticalAlignment="Bottom" SelectionMode="None" IsItemClickEnabled="False">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Text}" />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <TextBox KeyUp="TextBox_KeyDown" Grid.Row="1"></TextBox>
-        <Button VerticalAlignment="Top" HorizontalAlignment="Right" Margin="20" Click="Button_Click">Listen</Button>
-        <ProgressRing x:Name="Listening" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="20, 60, 20, 0" IsActive="False"></ProgressRing>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="50"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="text" KeyUp="TextBox_KeyDown" Grid.Column="0" PlaceholderText="Type something or say 'Start Listening'" FontSize="28" BorderBrush="Purple"></TextBox>
+            <Button x:Name="button" Click="Button_Click" Grid.Column="1" Height="50" Width="50" Padding="0" Background="Purple">
+                <SymbolIcon x:Name="symbol" Symbol="Microphone" Height="50" Width="50" HorizontalAlignment="Center" Foreground="White"></SymbolIcon></Button>
+        </Grid>
+        
+        <ProgressRing x:Name="Listening" VerticalAlignment="Top" HorizontalAlignment="Right"  IsActive="False" Foreground="Purple">
+            <ProgressRing.RenderTransform>
+                <CompositeTransform ScaleX="3" ScaleY="3" CenterX="20"></CompositeTransform>
+            </ProgressRing.RenderTransform>
+        </ProgressRing>
         <MediaElement x:Name="Media"></MediaElement>
     </Grid>
 </Page>

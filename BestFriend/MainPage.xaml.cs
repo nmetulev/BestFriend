@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -27,16 +28,17 @@ namespace BestFriend
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        ObservableCollection<Message> messages;
-        BestFriendService.Bot bot;
-        SpeechRecognizer speechRecognizer;
+        private ObservableCollection<Message> messages;
+        private BestFriendService.Bot bot;
+        private SpeechRecognizer speechRecognizer;
+        private SpeechRecognizer speechRecognizerContinuous;
+        private ManualResetEvent manualResetEvent;
 
-        bool listen = true;
+        bool listening = false;
 
         public MainPage()
         {
             this.InitializeComponent();
-            
         }
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -45,23 +47,56 @@ namespace BestFriend
             ListView.ItemsSource = messages;
             bot = new BestFriendService.Bot();
 
+            messages.CollectionChanged += Messages_CollectionChanged;
+
+            manualResetEvent = new ManualResetEvent(false);
+
+            Media.MediaEnded += Media_MediaEnded;
+
+            InitContiniousRecognition();
+
             if (e.Parameter != null && e.Parameter is bool)
             {
                 var response = await bot.SendMessageAndGetResponseFromBot("hello there");
                 messages.Add(new Message() { Text = "  > " + response });
-                SpeechSynthesizer synt = new SpeechSynthesizer();
-                SpeechSynthesisStream syntStream = await synt.SynthesizeTextToStreamAsync(response);
-                Media.SetSource(syntStream, syntStream.ContentType);
-               // await StartListenMode();
+                await SpeakAsync(response);
+                await SetListening(true);
             }
             else if (e.Parameter != null && e.Parameter is string && !string.IsNullOrWhiteSpace(e.Parameter as string))
             {
                 await SendMessage(e.Parameter as string, true);
-               // await StartListenMode();
+                await SetListening(true);
             }
         }
 
-        private async void TextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+        private void Messages_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            ListView.ScrollIntoView(messages.Last(), ScrollIntoViewAlignment.Leading);
+        }
+
+        private void Media_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            manualResetEvent.Set();
+        }
+
+        private async Task SpeakAsync(string toSpeak)
+        {
+            text.Text = "Speaking...";
+            SpeechSynthesizer speechSyntesizer = new SpeechSynthesizer();
+            SpeechSynthesisStream syntStream = await speechSyntesizer.SynthesizeTextToStreamAsync(toSpeak);
+            Media.SetSource(syntStream, syntStream.ContentType);
+
+            Task t = Task.Run(() =>
+            {
+                manualResetEvent.Reset();
+                manualResetEvent.WaitOne();
+            });
+            
+            await t;
+            text.Text = "";
+        }
+
+        private void TextBox_KeyDown(object sender, KeyRoutedEventArgs e)
         {
             TextBox box = (TextBox)sender;
             if (e.Key == Windows.System.VirtualKey.Enter && !string.IsNullOrWhiteSpace(box.Text))
@@ -72,12 +107,33 @@ namespace BestFriend
             }
         }
 
-        private async Task StartListenMode()
+        private async void StartListenMode()
         {
-            while (listen)
+            
+            while (listening)
             {
-                await SendMessage(await ListenForText(), true);
-                await Task.Delay(1000);
+                string spokenText = await ListenForText();
+                while (string.IsNullOrWhiteSpace(spokenText) && listening)
+                    spokenText = await ListenForText();
+
+                if (spokenText.ToLower().Contains("stop listening"))
+                {
+                    speechRecognizer.UIOptions.AudiblePrompt = "Are you sure you want me to stop listening?";
+                    speechRecognizer.UIOptions.ExampleText = "Yes/No";
+                    speechRecognizer.UIOptions.ShowConfirmation = false;
+                    SpeakAsync(speechRecognizer.UIOptions.AudiblePrompt);
+                    var result = await speechRecognizer.RecognizeWithUIAsync();
+
+                    if (!string.IsNullOrWhiteSpace(result.Text) && result.Text.ToLower() == "yes")
+                    {
+                        await SetListening(false);
+                    }
+                }
+
+                if (listening)
+                {
+                    await SendMessage(spokenText, true);
+                }
             }
                 
         }
@@ -85,10 +141,11 @@ namespace BestFriend
         private async Task<string> ListenForText()
         {
             string result = "";
-            InitSpeech();
+            await InitSpeech();
             try
             {
                 Listening.IsActive = true;
+                text.Text = "Listening...";
                 SpeechRecognitionResult speechRecognitionResult = await speechRecognizer.RecognizeAsync();
                 if (speechRecognitionResult.Status == SpeechRecognitionResultStatus.Success)
                 {
@@ -102,6 +159,7 @@ namespace BestFriend
             finally
             {
                 Listening.IsActive = false;
+                text.Text = "";
             }
 
             return result;
@@ -132,6 +190,52 @@ namespace BestFriend
             }
         }
 
+        private async Task InitContiniousRecognition()
+        {
+            try
+            {
+
+                if (speechRecognizerContinuous == null)
+                {
+                    speechRecognizerContinuous = new SpeechRecognizer();
+                    speechRecognizerContinuous.Constraints.Add(new SpeechRecognitionListConstraint(new List<String>() { "Start Listenning" }, "start"));
+                    speechRecognizerContinuous.Constraints.Add(new SpeechRecognitionListConstraint(new List<String>() { "Stop Listenning" }, "stop"));
+                    SpeechRecognitionCompilationResult contCompilationResult = await speechRecognizerContinuous.CompileConstraintsAsync();
+                    if (contCompilationResult.Status != SpeechRecognitionResultStatus.Success)
+                    {
+                        throw new Exception();
+                    }
+                    speechRecognizerContinuous.ContinuousRecognitionSession.Completed += ContinuousRecognitionSession_Completed;
+                    speechRecognizerContinuous.ContinuousRecognitionSession.ResultGenerated += ContinuousRecognitionSession_ResultGenerated;
+                }
+
+                await speechRecognizerContinuous.ContinuousRecognitionSession.StartAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
+        private void ContinuousRecognitionSession_ResultGenerated(SpeechContinuousRecognitionSession sender, SpeechContinuousRecognitionResultGeneratedEventArgs args)
+        {
+            if (args.Result.Confidence == SpeechRecognitionConfidence.Medium ||
+                args.Result.Confidence == SpeechRecognitionConfidence.High)
+            {
+                if (args.Result.Text == "Start Listenning")
+                {
+                    Media.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    {
+                        SetListening(true);
+                    });
+                }
+            }
+        }
+
+        private void ContinuousRecognitionSession_Completed(SpeechContinuousRecognitionSession sender, SpeechContinuousRecognitionCompletedEventArgs args)
+        {
+        }
+
         private async Task<string> SendMessage(string message, bool speak = false)
         {
             Debug.WriteLine("sending: " + message);
@@ -142,9 +246,10 @@ namespace BestFriend
 
             if (speak)
             {
-                SpeechSynthesizer synt = new SpeechSynthesizer();
-                SpeechSynthesisStream syntStream = await synt.SynthesizeTextToStreamAsync(response);
-                Media.SetSource(syntStream, syntStream.ContentType);
+                Debug.WriteLine("starting to speak");
+                await SpeakAsync(response);
+                Debug.WriteLine("done speaking");
+
             }
 
             return response;
@@ -157,7 +262,33 @@ namespace BestFriend
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            StartListenMode();
+            SetListening(!listening);
+        }
+
+        private async Task SetListening(bool toListen)
+        {
+            if (toListen)
+            {
+                listening = true;
+                text.IsEnabled = false;
+                symbol.Symbol = Symbol.FontColor;
+
+                if (speechRecognizerContinuous != null)
+                    await speechRecognizerContinuous.ContinuousRecognitionSession.CancelAsync();
+
+                StartListenMode();
+            }
+            else
+            {
+                listening = false;
+                text.IsEnabled = true;
+                symbol.Symbol = Symbol.Microphone;
+                Listening.IsActive = false;
+                text.Text = "";
+
+                if (speechRecognizerContinuous != null)
+                    await speechRecognizerContinuous.ContinuousRecognitionSession.StartAsync();
+            }
         }
     }
 

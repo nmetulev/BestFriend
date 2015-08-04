@@ -19,13 +19,11 @@
       <Navigate/>
     </Command>
 
-
     <Command Name="where">
       <Example> Where are we on the Build Tour </Example>
       <ListenFor RequireAppName="ExplicitlySpecified"> I want to go to {city} {builtin:AppName}</ListenFor>
       <VoiceCommandService Target="VoiceServiceEndpoint"/>
     </Command>
-
 
     <Command Name="sendMessageInCanvas">
       <Example>Best Friend, Let me tell you, you are nice!</Example>
