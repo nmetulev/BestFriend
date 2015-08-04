@@ -83,7 +83,7 @@ namespace BestFriend
                     speechRecognizer.UIOptions.AudiblePrompt = "Are you sure you want me to stop listening?";
                     speechRecognizer.UIOptions.ExampleText = "Yes/No";
                     speechRecognizer.UIOptions.ShowConfirmation = false;
-                    SpeakAsync(speechRecognizer.UIOptions.AudiblePrompt);
+                    //SpeakAsync(speechRecognizer.UIOptions.AudiblePrompt);
                     var result = await speechRecognizer.RecognizeWithUIAsync();
 
                     if (!string.IsNullOrWhiteSpace(result.Text) && result.Text.ToLower() == "yes")
@@ -154,6 +154,7 @@ namespace BestFriend
                     speechRecognizer = new SpeechRecognizer();
 
                     SpeechRecognitionCompilationResult compilationResult = await speechRecognizer.CompileConstraintsAsync();
+                    speechRecognizer.HypothesisGenerated += SpeechRecognizer_HypothesisGenerated;
 
                     if (compilationResult.Status != SpeechRecognitionResultStatus.Success)
                         throw new Exception();
@@ -177,7 +178,6 @@ namespace BestFriend
                 {
                     speechRecognizerContinuous = new SpeechRecognizer();
                     speechRecognizerContinuous.Constraints.Add(new SpeechRecognitionListConstraint(new List<String>() { "Start Listenning" }, "start"));
-                    speechRecognizerContinuous.Constraints.Add(new SpeechRecognitionListConstraint(new List<String>() { "Stop Listenning" }, "stop"));
                     SpeechRecognitionCompilationResult contCompilationResult = await speechRecognizerContinuous.CompileConstraintsAsync();
                     if (contCompilationResult.Status != SpeechRecognitionResultStatus.Success)
                     {
@@ -209,6 +209,14 @@ namespace BestFriend
             }
         }
 
+        private void SpeechRecognizer_HypothesisGenerated(SpeechRecognizer sender, SpeechRecognitionHypothesisGeneratedEventArgs args)
+        {
+            text.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                text.Text = args.Hypothesis.Text;
+            });
+        }
+
         private async Task<string> SendMessage(string message, bool speak = false)
         {
             Debug.WriteLine("sending: " + message);
@@ -235,6 +243,7 @@ namespace BestFriend
                 listening = true;
                 text.IsEnabled = false;
                 symbol.Symbol = Symbol.FontColor;
+                text.PlaceholderText = "waiting";
 
                 if (speechRecognizerContinuous != null)
                     await speechRecognizerContinuous.ContinuousRecognitionSession.CancelAsync();
@@ -248,6 +257,7 @@ namespace BestFriend
                 symbol.Symbol = Symbol.Microphone;
                 Listening.IsActive = false;
                 text.Text = "";
+                text.PlaceholderText = "Type something or say 'Start Listening'";
 
                 if (speechRecognizerContinuous != null)
                     await speechRecognizerContinuous.ContinuousRecognitionSession.StartAsync();
