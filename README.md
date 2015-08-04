@@ -5,10 +5,11 @@ Bot implementaion for [PersonalityForge](http://www.personalityforge.com/), inte
 ## Setup
 
 1. Ensure Cortana is signed in with an MSA account. This can be achieved by opening Cortana once and following the sign-in process. 
-2. Run the application normally once (eg, via F5 debug or deploy/launch). This installs the voice command definitions.
-3. Close the app.
-4. Click on the microphone icon in Cortana's search bar. 
-5. Say one of the supported voice commands (see below)
+2. Set the API key and botID in BestFriendService/Bot.cs
+3. Run the application normally once (eg, via F5 debug or deploy/launch). This installs the voice command definitions.
+4. Close the app.
+5. Click on the microphone icon in Cortana's search bar. 
+6. Say one of the supported voice commands (see below)
 
 (Note: it may take a small amount of time for Cortana to refresh its installed voice commands.)
 
