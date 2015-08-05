@@ -1,11 +1,11 @@
 # BestFriend
 
-Bot implementaion for [PersonalityForge](http://www.personalityforge.com/), integrated with Cortana and Voice services on the Universal Windows Platform
+Sample UWP app to showcase the speech platform in the Universal Windows Platform including our favorite digital assistant. Detailed blog post [here](http://metulev.com/meet-the-speech-platform-in-windows-10/)
 
 ## Setup
 
 1. Ensure Cortana is signed in with an MSA account. This can be achieved by opening Cortana once and following the sign-in process. 
-2. Set the API key and botID in BestFriendService/Bot.cs
+2. Set the API key and botID in BestFriendService/Bot.cs. (I used [PersonalityForge](http://www.personalityforge.com/) bot as it was the fastest)
 3. Run the application normally once (eg, via F5 debug or deploy/launch). This installs the voice command definitions.
 4. Close the app.
 5. Click on the microphone icon in Cortana's search bar. 
