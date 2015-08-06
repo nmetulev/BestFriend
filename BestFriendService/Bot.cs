@@ -16,12 +16,12 @@ namespace BestFriendService
     public sealed class Bot
     {
         // You will need to create your own API key and enable simple API
-        private string key = "<INSERT YOUR API KEY HERE>";
+        private string key = "Y5YF7tlYibRW0OsK";
 
         // You will need to either use a bot that  has been enabled for the API
         // or create your own bot. I've been using the example bot from the API
         // but be warned, it's very much rated R. The id is 6
-        private string botId = "<INSERT YOUR BOT NUMBER HERE>";
+        private string botId = "6";
         
         public IAsyncOperation<string> SendMessageAndGetResponseFromBot(string message)
         {
@@ -35,7 +35,7 @@ namespace BestFriendService
                     string uri = "http://www.personalityforge.com/api/chat/?apiKey=" + key +
                                  "&chatBotID=" + botId +
                                  "&message=" + message +
-                                 "&externalID=demo";
+                                 "&externalID=demo1";
                     string response = await client.GetStringAsync(new Uri(uri));
                     
                     Match match = Regex.Match(response, "{\"success\".*}");
