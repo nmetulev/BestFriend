@@ -13,14 +13,14 @@
     </Command>
 
     <Command Name="sendMessage">
-      <Example>Let's chat</Example>
+      <Example>Best Friend, Can I ask, how are you?</Example>
       <ListenFor RequireAppName="BeforeOrAfterPhrase" > Can I ask, {message}</ListenFor>
       <Feedback> OK </Feedback>
       <Navigate/>
     </Command>
 
     <Command Name="where">
-      <Example> Where are we on the Build Tour </Example>
+      <Example> I want to go to Berlin Best Friend! </Example>
       <ListenFor RequireAppName="ExplicitlySpecified"> I want to go to {city} {builtin:AppName}</ListenFor>
       <VoiceCommandService Target="VoiceServiceEndpoint"/>
     </Command>

@@ -100,6 +100,30 @@ namespace BestFriend
                 
         }
 
+        private async Task InitSpeech()
+        {
+            if (speechRecognizer == null)
+            {
+                try
+                {
+                    speechRecognizer = new SpeechRecognizer();
+
+                    SpeechRecognitionCompilationResult compilationResult = await speechRecognizer.CompileConstraintsAsync();
+                    speechRecognizer.HypothesisGenerated += SpeechRecognizer_HypothesisGenerated;
+
+                    if (compilationResult.Status != SpeechRecognitionResultStatus.Success)
+                        throw new Exception();
+
+                    Debug.WriteLine("SpeechInit AOK");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("SpeechInit Failed");
+                    speechRecognizer = null;
+                }
+            }
+        }
+
         private async Task<string> ListenForText()
         {
             string result = "";
@@ -145,30 +169,6 @@ namespace BestFriend
             text.Text = "";
         }
 
-        private async Task InitSpeech()
-        {
-            if (speechRecognizer == null)
-            {
-                try
-                {
-                    speechRecognizer = new SpeechRecognizer();
-
-                    SpeechRecognitionCompilationResult compilationResult = await speechRecognizer.CompileConstraintsAsync();
-                    speechRecognizer.HypothesisGenerated += SpeechRecognizer_HypothesisGenerated;
-
-                    if (compilationResult.Status != SpeechRecognitionResultStatus.Success)
-                        throw new Exception();
-
-                    Debug.WriteLine("SpeechInit AOK");
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("SpeechInit Failed");
-                    speechRecognizer = null;
-                }
-            }
-        }
-
         private async Task InitContiniousRecognition()
         {
             try
@@ -177,8 +177,13 @@ namespace BestFriend
                 if (speechRecognizerContinuous == null)
                 {
                     speechRecognizerContinuous = new SpeechRecognizer();
-                    speechRecognizerContinuous.Constraints.Add(new SpeechRecognitionListConstraint(new List<String>() { "Start Listenning" }, "start"));
-                    SpeechRecognitionCompilationResult contCompilationResult = await speechRecognizerContinuous.CompileConstraintsAsync();
+                    speechRecognizerContinuous.Constraints.Add(
+                        new SpeechRecognitionListConstraint(
+                            new List<String>() { "Start Listening" }, "start"));
+                    SpeechRecognitionCompilationResult contCompilationResult = 
+                        await speechRecognizerContinuous.CompileConstraintsAsync();
+
+
                     if (contCompilationResult.Status != SpeechRecognitionResultStatus.Success)
                     {
                         throw new Exception();
@@ -194,14 +199,14 @@ namespace BestFriend
             }
         }
 
-        private void ContinuousRecognitionSession_ResultGenerated(SpeechContinuousRecognitionSession sender, SpeechContinuousRecognitionResultGeneratedEventArgs args)
+        private async void ContinuousRecognitionSession_ResultGenerated(SpeechContinuousRecognitionSession sender, SpeechContinuousRecognitionResultGeneratedEventArgs args)
         {
             if (args.Result.Confidence == SpeechRecognitionConfidence.Medium ||
                 args.Result.Confidence == SpeechRecognitionConfidence.High)
             {
-                if (args.Result.Text == "Start Listenning")
+                if (args.Result.Text == "Start Listening")
                 {
-                    Media.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+                    await Media.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
                         SetListening(true);
                     });
@@ -209,13 +214,15 @@ namespace BestFriend
             }
         }
 
-        private void SpeechRecognizer_HypothesisGenerated(SpeechRecognizer sender, SpeechRecognitionHypothesisGeneratedEventArgs args)
+        private async void SpeechRecognizer_HypothesisGenerated(SpeechRecognizer sender, SpeechRecognitionHypothesisGeneratedEventArgs args)
         {
-            text.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            await text.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
             {
                 text.Text = args.Hypothesis.Text;
             });
         }
+
+        #region
 
         private async Task<string> SendMessage(string message, bool speak = false)
         {
@@ -288,6 +295,7 @@ namespace BestFriend
 
             }
         }
+        #endregion
     }
 
     public class Message
