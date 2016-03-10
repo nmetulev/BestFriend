@@ -1,0 +1,2 @@
+MainPackage=C:\Users\nikolame\source\BestFriend\BestFriend\bin\x86\Debug\BestFriend_1.0.1.0_x86_Debug.appx
+ResourcePack=C:\Users\nikolame\source\BestFriend\BestFriend\bin\x86\Debug\BestFriend_1.0.1.0_scale-100.appx
