@@ -1,5 +1,7 @@
 # BestFriend
 
+[![Join the chat at https://gitter.im/nmetulev/BestFriend](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nmetulev/BestFriend?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Sample UWP app to showcase the speech platform in the Universal Windows Platform including our favorite digital assistant. Detailed blog post [here](http://metulev.com/meet-the-speech-platform-in-windows-10/)
 
 ## Setup
